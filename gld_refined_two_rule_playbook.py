@@ -45,6 +45,44 @@ def initialize(context):
     context.last_regular_close = None
 
 
+def current_price(data, asset, field):
+    try:
+        value = data.current(asset, field)
+    except Exception:
+        return None
+    try:
+        if value is None or value != value:
+            return None
+    except Exception:
+        return None
+    return float(value)
+
+
+def has_position(context):
+    position = context.portfolio.positions.get(context.asset)
+    return position is not None and getattr(position, "quantity", 0) != 0
+
+
+def has_open_orders(context):
+    try:
+        orders = get_open_orders(context.asset)
+    except TypeError:
+        orders = get_open_orders()
+    return bool(orders)
+
+
+def record_state(context, price):
+    position = context.portfolio.positions.get(context.asset)
+    quantity = 0 if position is None else getattr(position, "quantity", 0)
+    record(
+        close=price,
+        quantity=quantity,
+        opening_signal=int(bool(context.opening_signal)),
+        flush_signal=int(bool(context.flush_signal)),
+        daily_halt=int(bool(context.daily_halt)),
+    )
+
+
 def handle_data(context, data):
     now = get_datetime()
     local_minute = (now.hour * 60) + now.minute
@@ -168,40 +206,3 @@ def flatten(context):
     context.target_price = None
     context.time_exit_minute = None
 
-
-def has_position(context):
-    position = context.portfolio.positions.get(context.asset)
-    return position is not None and getattr(position, "quantity", 0) != 0
-
-
-def has_open_orders(context):
-    try:
-        orders = get_open_orders(context.asset)
-    except TypeError:
-        orders = get_open_orders()
-    return bool(orders)
-
-
-def current_price(data, asset, field):
-    try:
-        value = data.current(asset, field)
-    except Exception:
-        return None
-    try:
-        if value is None or value != value:
-            return None
-    except Exception:
-        return None
-    return float(value)
-
-
-def record_state(context, price):
-    position = context.portfolio.positions.get(context.asset)
-    quantity = 0 if position is None else getattr(position, "quantity", 0)
-    record(
-        close=price,
-        quantity=quantity,
-        opening_signal=int(bool(context.opening_signal)),
-        flush_signal=int(bool(context.flush_signal)),
-        daily_halt=int(bool(context.daily_halt)),
-    )
