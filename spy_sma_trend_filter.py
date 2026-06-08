@@ -59,7 +59,7 @@ def handle_data(context, data):
         return
 
     if local_minute < TRADE_MINUTE or context.last_signal_date == today:
-        record_state(context, close, None, None, "waiting")
+        record_state(context, close, None, None, 0)
         return
 
     context.last_signal_date = today
@@ -69,7 +69,7 @@ def handle_data(context, data):
 
     if len(context.daily_closes) < SLOW_DAYS:
         print("warmup", today, "close", close, "days", len(context.daily_closes))
-        record_state(context, close, None, None, "warmup")
+        record_state(context, close, None, None, 1)
         return
 
     fast_sma = average(context.daily_closes[-FAST_DAYS:])
@@ -108,15 +108,15 @@ def handle_data(context, data):
             target,
         )
 
-    record_state(context, close, fast_sma, slow_sma, "long" if should_be_long else "flat")
+    record_state(context, close, fast_sma, slow_sma, 3 if should_be_long else 2)
 
 
-def record_state(context, close, fast_sma, slow_sma, state):
+def record_state(context, close, fast_sma, slow_sma, state_code):
     record(
         close=close,
         fast_sma=0.0 if fast_sma is None else fast_sma,
         slow_sma=0.0 if slow_sma is None else slow_sma,
         target=context.current_target,
         quantity=position_quantity(context),
-        state=state,
+        state_code=state_code,
     )
