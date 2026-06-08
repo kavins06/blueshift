@@ -9,7 +9,7 @@ This is a deliberately simple backtest candidate:
 It is meant as a stable BlueShift smoke strategy, not live-trading approval.
 """
 
-from blueshift.api import get_datetime, order_target_percent, record, symbol
+from blueshift.api import get_datetime, order_target_percent, symbol
 
 
 FAST_DAYS = 20
@@ -112,11 +112,4 @@ def handle_data(context, data):
 
 
 def record_state(context, close, fast_sma, slow_sma, state_code):
-    record(
-        close=close,
-        fast_sma=0.0 if fast_sma is None else fast_sma,
-        slow_sma=0.0 if slow_sma is None else slow_sma,
-        target=context.current_target,
-        quantity=position_quantity(context),
-        state_code=state_code,
-    )
+    return
